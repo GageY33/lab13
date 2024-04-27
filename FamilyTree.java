@@ -34,7 +34,7 @@ public class FamilyTree
             // Add childNode to this node's children list. Also
             // set childNode's parent to this node.
         	children.add(childNode);
-        	parent = childNode;
+        	childNode.parent = this;
         	
         }
         
@@ -75,13 +75,11 @@ public class FamilyTree
             // draw a tree, mark any leaf node, and then mark its ancestors in order from
             // recent to ancient. Expect a question about this on the final exam.
             
-            TreeNode current = parent;
-            while (current != null) {
-            	ancestors.add(current);
+            TreeNode current = this;
+            while (current.parent != null) {
+            	ancestors.add(current.parent);
             	current = current.parent;
             }
-            
-            // node = node.parent
 
             return ancestors;
         }
@@ -139,35 +137,52 @@ public class FamilyTree
 	// Line format is "parent:child1,child2 ..."
 	// Throws TreeException if line is illegal.
 	//
-	private void addLine(String line) throws TreeException
+
+	private void addLine(String line) throws TreeException, IOException
 	{
 		// Extract parent and array of children.
-		int colonIndex = ?? should be the index of the colon in line.
-		if (colonIndex < 0)
-			?? throw a TreeException with a useful message
-		String parent = ?? The substring of line that starts at char #0 and ends just before colonIndex. Check the API for 
-				           class java.util.String, method substring(), if you need guidance.
-		String childrenString = ?? The substring of line that starts just after colonIndex and goes through the end of
-				                   the line. You'll use a different version of substring().
-		String[] childrenArray = ?? Call childrenString.split(). Check the API for details. The result will be an array
-				                    of strings, with the separating commas thrown away.
-		
+		//should be the index of the colon in line
+		int colonIndex = line.indexOf(':'); 
+		if (colonIndex < 0) {
+			//a TreeException with a useful message
+			throw new TreeException("Illegal line: " + line);
+		}
+		// The substring of line that starts at char #0 and ends just before colonIndex. Check the API for
+		//class java.util.String, method substring(), if you need guidance.
+		String parent = line.substring(0, colonIndex);
+		 
+		//The substring of line that starts just after colonIndex and goes through the end of
+		//the line. You'll use a different version of substring().
+		String childrenString = line.substring(colonIndex + 1);
+		//Call childrenString.split(). Check the API for details. The result will be an array
+		//of strings, with the separating commas thrown away.
+		String[] childrenArray = childrenString.split(",");
 		// Find parent node. If root is null then the tree is empty and the
-		// parent node must be constructed. Otherwise the parent node should be 
+		// parent node must be constructed. Otherwise the parent node should be
 		// somewhere in the tree.
 		TreeNode parentNode;
-		if (root == null)
+		if (root == null) {
 			parentNode = root = new TreeNode(parent);
-		else
-		{
-			parentNode = root.?????  There's a method in Node that searches for a named node. 
-			??? If the parent node wasn't found, there must have been something wrong in the 
-				data file. Throw an exception.
+			root = parentNode;
 		}
+		else {
+			parentNode = root.getNodeWithName(parent);  //There's a method in Node that searches for a named node. 
+			//If the parent node wasn't found, there must have been something wrong in the data file. 
+			//Throw an exception.
+			if(parentNode == null) {
+				throw new TreeException("Cannot find parent node: " + parent);
+			}
+		}
+	
 		
 		// Add child nodes to parentNode.
-		?? For each name in childrenArray, create a new node and add that node to parentNode.
+		for (String childName : childrenArray) {
+			TreeNode childNode = new TreeNode(childName.trim());
+			parentNode.addChild(childNode);
+		}
+		//For each name in childrenArray, create a new node and add that node to parentNode.
 	}
+
 	
 	
 	// Returns the "deepest" node that is an ancestor of the node named name1, and also is an
@@ -176,19 +191,19 @@ public class FamilyTree
 	// "Depth" of a node is the "distance" between that node and the root. The depth of the root is 0. The
 	// depth of the root's immediate children is 1, and so on.
 	//
-	TreeNode getMostRecentCommonAncestor(String name1, String name2) throws TreeException
+	TreeNode getMostRecentCommonAncestor(String name1, String name2) throws TreeException, IOException
 	{
 		// Get nodes for input names.
-		TreeNode node1 = root.???		// node whose name is name1
+		TreeNode node1 = root.getNodeWithName(name1);		// node whose name is name1
 		if (node1 == null)
-			??? Throw a TreeException with a useful message
-		TreeNode node2 = root.???		// node whose name is name2
+			throw new TreeException("name1 is null."); //Throw a TreeException with a useful message
+		TreeNode node2 = root.getNodeWithName(name2); // node whose name is name2
 		if (node2 == null)
-			??? Throw TreeException with a useful message
+			throw new TreeException("name2 is null"); //Throw TreeException with a useful message
 		
 		// Get ancestors of node1 and node2.
-		ArrayList<TreeNode> ancestorsOf1 = ???
-		ArrayList<TreeNode> ancestorsOf2 = ???
+		ArrayList<TreeNode> ancestorsOf1 = node1.collectAncestorsToList();
+		ArrayList<TreeNode> ancestorsOf2 = node2.collectAncestorsToList();
 		
 		// Check members of ancestorsOf1 in order until you find a node that is also
 		// an ancestor of 2. 
@@ -226,3 +241,8 @@ public class FamilyTree
 		}
 	}
 }
+//1.cd to thr path 
+//2. git status 
+//3. git add . 
+//4. git commit -m "update"  
+//5 git push
